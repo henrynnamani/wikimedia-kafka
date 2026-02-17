@@ -86,6 +86,19 @@ public class OpenSearchConsumer {
 
             BulkRequest bulkRequest = new BulkRequest();
 
+            final Thread mainThread = Thread.currentThread();
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                log.info("Detected shutdown");
+                    consumer.wakeup();
+
+                    try {
+                        mainThread.join(Duration.ofSeconds(30));
+                    } catch(InterruptedException e) {
+                        e.printStackTrace();
+                    }
+            }));
+
             while(true) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
 
